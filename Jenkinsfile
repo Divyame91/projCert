@@ -1,6 +1,18 @@
 pipeline{
     agent { label 'testserver'}
     stages('Deploy a PHP application'){
+        stage('Cleanup Docker Environment') {
+            steps {
+                // Stop and remove any existing container named 'php'
+                sh '''
+                docker ps -a -q --filter "name=php" | grep -q . && docker stop php && docker rm php || echo "No container to remove"
+                '''
+                // Remove any existing image with the same tag
+                sh '''
+                docker images -q divyame91/mylearnings24:phpwebapp | grep -q . && docker rmi -f divyame91/mylearnings24:phpwebapp || echo "No image to remove"
+                '''
+            }
+        }
         stage('Build a Docker Image'){
             steps{
                sh 'docker build -t divyame91/mylearnings24:phpwebapp .'
