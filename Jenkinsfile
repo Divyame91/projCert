@@ -1,11 +1,12 @@
-pipeline{
-    agent { label 'testserver'}
-    stages('Deploy a PHP application'){
+pipeline {
+    agent { label 'testserver' }
+
+    stages {
         stage('Cleanup Docker Environment') {
             steps {
-                // Stop and remove any existing container named 'php'
+                // Stop and remove any existing container named 'phpweb'
                 sh '''
-                docker ps -a -q --filter "name=phpweb" | grep -q . && docker stop php && docker rm phpweb || echo "No container to remove"
+                docker ps -a -q --filter "name=phpweb" | grep -q . && docker stop phpweb && docker rm phpweb || echo "No container to remove"
                 '''
                 // Remove any existing image with the same tag
                 sh '''
@@ -13,27 +14,36 @@ pipeline{
                 '''
             }
         }
-        stage('Build a Docker Image'){
-            steps{
-               sh 'docker build -t divyame91/mylearnings24:phpwebsite .'
+        stage('Build a Docker Image') {
+            steps {
+                sh 'docker build -t divyame91/mylearnings24:phpwebsite .'
             }
         }
-        stage('Run Docker Container'){
-            steps{
+        stage('Run Docker Container') {
+            steps {
                 sh 'docker run -dit --name phpweb -p 80:80 divyame91/mylearnings24:phpwebsite'
             }
         }
         stage('Deploy to Kubernetes via Ansible') {
             steps {
-         ansiblePlaybook credentialsId: 'ansible_to_kube', disableHostKeyChecking: true, installation: 'Ansible', inventory: '/etc/ansible/hosts', playbook: '/etc/kubedeploy/deploy_to_k8s', vaultTmpPath: ''
-    }
+                ansiblePlaybook(
+                    credentialsId: 'ansible_to_kube',
+                    disableHostKeyChecking: true,
+                    installation: 'Ansible',
+                    inventory: '/etc/ansible/hosts',
+                    playbook: '/etc/kubedeploy/deploy_to_k8s',
+                    vaultTmpPath: ''
+                )
+            }
         }
-     post {
+    }
+
+    post {
         failure {
             steps {
                 echo "Job failed. Cleaning up non-running Docker containers..."
                 sh 'docker container prune -f'
             }
         }
-}
+    }
 }
