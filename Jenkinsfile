@@ -26,7 +26,7 @@ pipeline{
         stage('Deploy to Kubernetes via Ansible') {
             steps {
                 script {
-                    sh 'ansiblePlaybook credentialsId: 'ansible_to_kube', disableHostKeyChecking: true, installation: 'Ansible', inventory: '/etc/ansible/hosts', playbook: '/etc/kubedeploy/deploy-to-k8s', vaultTmpPath: "'
+                    ansiblePlaybook credentialsId: 'ansible_to_kube', disableHostKeyChecking: true, installation: 'Ansible', inventory: '/etc/ansible/hosts', playbook: '/etc/kubedeploy/deploy-to-k8s', vaultTmpPath: "
                 }
             }
     }
