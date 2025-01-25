@@ -1,6 +1,5 @@
 pipeline {
-    agent { label 'master' }
-
+    agent any
     stages {
         stage('Cleanup Docker Environment') {
             steps {
